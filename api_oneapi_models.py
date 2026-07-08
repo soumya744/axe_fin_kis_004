@@ -95,40 +95,71 @@ class OneAPIAction:
     # Authentication
     # ------------------------------------------------------------------
     def _acquire_auth_token(self):
-        """Obtain a Bearer token from AuthBlue App2App.
+        """Obtain a Bearer token.
 
-        The service password must be provided via the environment variable
-        ONEAPI_SERVICE_PASSWORD.  It is intentionally not hard-coded here.
+        Priority:
+        1. --token CLI arg  (data['token'])
+        2. ONEAPI_BEARER_TOKEN env var  → use directly, skip AuthBlue
+        3. ONEAPI_BASIC_AUTH env var    → pre-encoded Basic auth header value
+        4. ONEAPI_SERVICE_PASSWORD      → build Basic auth from service ID + password
 
-        Equivalent Postman call (from reference):
-            POST https://authbluetokens.aexp.com/v1/app2app/tokens
-            Auth: Basic  <ONEAPI_SERVICE_ID> / <ONEAPI_SERVICE_PASSWORD>
-            Body: { "scope": {}, "attributes": { "givenname": "<service_id>" } }
+        AuthBlue curl equivalent (from reference):
+            curl --location --request POST
+              'https://authbluetokens.aexp.com/v1/app2app/tokens'
+              --header 'Content-Type: application/json'
+              --header 'Authorization: Basic <base64-encoded-credentials>'
+              --data-raw '{
+                "scope": {
+                  "attributes": ["givenname", "sn", "department"],
+                  "groups": ["infraobserve-test"]
+                }
+              }'
         """
-        service_password = os.environ.get('ONEAPI_SERVICE_PASSWORD', '')
-        if not service_password:
-            logger.warning(
-                'ONEAPI_SERVICE_PASSWORD env var is not set. '
-                'Requests will likely fail authentication.'
-            )
+        import base64
 
+        # 1 & 2 — pre-fetched Bearer token (skip AuthBlue entirely)
+        direct_token = self.data.get('token', '') or os.environ.get('ONEAPI_BEARER_TOKEN', '')
+        if direct_token:
+            self.auth_token = direct_token
+            self.headers['Authorization'] = f'Bearer {self.auth_token}'
+            logger.info('Using pre-set Bearer token.')
+            return
+
+        # 3 — pre-encoded Basic auth string  e.g. c3ZjLm...
+        basic_auth = os.environ.get('ONEAPI_BASIC_AUTH', '')
+        if not basic_auth:
+            # 4 — build Basic auth from service ID + password
+            service_password = os.environ.get('ONEAPI_SERVICE_PASSWORD', '')
+            if not service_password:
+                logger.warning(
+                    'No token source found. Set --token, ONEAPI_BEARER_TOKEN, '
+                    'ONEAPI_BASIC_AUTH, or ONEAPI_SERVICE_PASSWORD.'
+                )
+            raw = f'{ONEAPI_SERVICE_ID}:{service_password}'
+            basic_auth = base64.b64encode(raw.encode()).decode()
+
+        # Correct AuthBlue request body (matches curl from reference)
         auth_body = {
-            "scope": {},
-            "attributes": {"givenname": ONEAPI_SERVICE_ID}
+            "scope": {
+                "attributes": ["givenname", "sn", "department"],
+                "groups": ["infraobserve-test"]
+            }
+        }
+        auth_headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Basic {basic_auth}',
         }
 
         try:
             response = requests.post(
                 AUTHBLUE_TOKEN_URL,
-                auth=(ONEAPI_SERVICE_ID, service_password),
+                headers=auth_headers,
                 json=auth_body,
-                headers={'Content-Type': 'application/json'},
                 verify=False,
                 timeout=timeout_duration
             )
             if response.ok:
                 token_data = response.json()
-                # AuthBlue returns the token under 'access_token'
                 self.auth_token = (
                     token_data.get('access_token')
                     or token_data.get('token')
@@ -137,10 +168,7 @@ class OneAPIAction:
                 self.headers['Authorization'] = f'Bearer {self.auth_token}'
                 logger.info('Successfully obtained AuthBlue Bearer token.')
             else:
-                msg = (
-                    f'AuthBlue token request failed: '
-                    f'{response.status_code} {response.text}'
-                )
+                msg = f'AuthBlue token request failed: {response.status_code} {response.text}'
                 logger.error(msg)
                 raise ConsumerException(msg)
 

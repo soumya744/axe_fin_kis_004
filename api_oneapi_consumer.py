@@ -75,6 +75,7 @@ if __name__ == "__main__":
 
     # Connection / auth
     parser.add_argument('--api_url',    default='',  help='OneAPI base URL override')
+    parser.add_argument('--token',      default='',  help='Bearer token (skips AuthBlue)')
     parser.add_argument('-req', '--requestor', default='', action='store',
                         help='User name (ADS) of requestor')
 
@@ -125,4 +126,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     data = vars(args)
+
+    # If --token passed, inject it as env var so the model picks it up
+    if data.get('token'):
+        os.environ['ONEAPI_BEARER_TOKEN'] = data['token']
+
     main(data)

@@ -8,7 +8,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from api_oneapi_models import (
-    GetHost, GetAllHost,
+    GetHost, GetAllHost, GetHostServices,
     AddESXi, AddCluster,
     DisableObject, EnableObject,
     ScheduleSilence, RemoveSilence, GetSilenceStatus,

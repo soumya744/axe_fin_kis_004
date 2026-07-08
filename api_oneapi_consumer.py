@@ -16,22 +16,32 @@ from api_oneapi_models import (
 
 # == [ MAIN ] =====================================================
 ACTION_KEYMAP = {
+    # ── CAUT-1576: Onboard new objects (ESXi & Clusters) to OneAPI ──
+    'addHost':            AddESXi,
+    'addESXi':            AddESXi,
+    'addCluster':         AddCluster,
+
+    # ── CAUT-1577: Disable objects on OneAPI ────────────────────────
+    'disableHost':        DisableObject,
+    'disableESXi':        DisableObject,
+
+    # ── CAUT-1578: Schedule Downtime (silence) on OneAPI ────────────
+    'scheduleSilence':    ScheduleSilence,
+    'scheduleDowntime':   ScheduleSilence,   # legacy Icinga name
+
+    # ── CAUT-1579: Remove Downtime from object on OneAPI ────────────
+    'removeSilence':      RemoveSilence,
+    'removeDowntime':     RemoveSilence,     # legacy Icinga name
+
+    # ── CAUT-1580: Enable objects on OneAPI ─────────────────────────
+    'enableHost':         EnableObject,
+    'enableESXi':         EnableObject,
+
+    # ── Read-only queries ────────────────────────────────────────────
     'getHost':            GetHost,
     'getAllHost':          GetAllHost,
-    'addHost':            AddESXi,
-    'addCluster':         AddCluster,
-    'disableHost':        DisableObject,
-    'enableHost':         EnableObject,
-    'scheduleSilence':    ScheduleSilence,
-    'removeSilence':      RemoveSilence,
+    'getHostServices':    GetHostServices,
     'getSilenceStatus':   GetSilenceStatus,
-
-    # Legacy Icinga action names → mapped to new OneAPI classes
-    'addESXi':            AddESXi,
-    'disableESXi':        DisableObject,
-    'enableESXi':         EnableObject,
-    'scheduleDowntime':   ScheduleSilence,
-    'removeDowntime':     RemoveSilence,
 }
 
 

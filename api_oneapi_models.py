@@ -312,7 +312,7 @@ class GetHostServices(OneAPIAction):
 # =====================================================================
 
 class AddESXi(OneAPIAction):
-    """Onboard a new ESXi host.
+    """[CAUT-1576] Create new endpoint for onboarding new objects (ESXi) to OneAPI.
 
     Icinga:  POST /icingaweb2/director/host
              body: object_name, object_type, address, zone, vars.*, imports
@@ -364,7 +364,7 @@ class AddESXi(OneAPIAction):
 
 
 class AddCluster(OneAPIAction):
-    """Onboard a new Cluster.
+    """[CAUT-1576] Create new endpoint for onboarding new objects (Clusters) to OneAPI.
 
     Icinga:  POST /icingaweb2/director/host
              body: object_name, object_type, address, zone, vars.clustername, imports
@@ -408,14 +408,14 @@ class AddCluster(OneAPIAction):
 
 
 class DisableObject(OneAPIAction):
-    """Disable an ESXi host or Cluster.
+    """[CAUT-1577] Create new endpoint for Disabling objects on OneAPI.
 
     Icinga:  POST /icingaweb2/director/host?name={host_name}
              body: { object_name: host_name, disabled: 'y' }
     OneAPI:  POST /hosts/{host_name}
              body: { object_name: host_name, disabled: true }
 
-    Note: 'y'/'n' string → True/False boolean for OneAPI.
+    Note: Icinga used string 'y'/'n' → OneAPI uses boolean true/false.
     """
     def __init__(self, data: dict):
         super().__init__(data)
@@ -432,7 +432,7 @@ class DisableObject(OneAPIAction):
 
 
 class EnableObject(OneAPIAction):
-    """Enable an ESXi host or Cluster.
+    """[CAUT-1580] Create new endpoint for Enabling objects on OneAPI.
 
     Icinga:  POST /icingaweb2/director/host?name={host_name}
              body: { object_name: host_name, disabled: 'n' }
@@ -458,7 +458,7 @@ class EnableObject(OneAPIAction):
 # =====================================================================
 
 class ScheduleSilence(OneAPIAction):
-    """Schedule a silence / blackout.
+    """[CAUT-1578] Create new endpoint for Scheduling Downtime (silence) on OneAPI.
 
     Icinga:  POST /icingaweb2/monitoring/host/schedule-downtime?host={host_name}
              body: { type: fixed, start: unix_ts, end: unix_ts,
@@ -506,7 +506,7 @@ class GetSilenceStatus(OneAPIAction):
 
 
 class RemoveSilence(OneAPIAction):
-    """Remove an active silence / blackout.
+    """[CAUT-1579] Create new endpoint for removing Downtime from object on OneAPI.
 
     Icinga:  POST /icingaweb2/monitoring/downtimes/delete-all?host={host_name}
              body: {}
